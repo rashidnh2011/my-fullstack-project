@@ -5,6 +5,9 @@ import MainLayout from './layouts/MainLayout';
 import Dashboard from './page/dashboard/Dashboard';
 import { ProtectedRoute } from './auth/ProtectedRoute';
 import SupplierManagement from './page/supplier-managment';
+import CustomerManagement from './page/customer-management';
+import WarehouseMaster from './page/warehouse-master';
+import InventoryMaster from './page/inventory-master';
 
 // Import all your page components
 import ASNManagement from './page/dashboard/inbound/ASNManagement';
@@ -38,7 +41,14 @@ function App() {
               
               {/* ✅ Supplier Page - now inside layout & protected */}
               <Route path="/supplier-management" element={<SupplierManagement />} />
+              
+              {/* ✅ Customer Page - now inside layout & protected */}
+              <Route path="/customer-management" element={<CustomerManagement />} />
 
+              <Route path='/warehouse-master' element={<WarehouseMaster />} />
+
+              <Route path='/inventory-master' element={<InventoryMaster />} />
+ 
               {/* Add redirect from root to dashboard */}
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
 

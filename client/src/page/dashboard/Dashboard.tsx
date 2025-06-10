@@ -6,11 +6,16 @@ import {
 import {
   DollarSign, CreditCard, Clock, ShoppingBag,
   Utensils, Users, TrendingUp, Home, 
-  PieChart as PieChartIcon, BarChart2, LineChart as LineChartIcon
+  PieChart as PieChartIcon, BarChart2, LineChart as LineChartIcon,
+  Calendar as CalendarIcon
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from "../../components/ui/Card";
 import { Button } from "../../components/ui/Button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../../components/ui/tabs";
+import { Popover, PopoverContent, PopoverTrigger } from "../../components/ui/Popover";
+import { Calendar } from "../../components/ui/Calendar";
+import { DateRange } from 'react-day-picker';
+import { addDays, format } from 'date-fns';
 
 // Types
 type SalesChannel = 'Dine-in' | 'Delivery' | 'Takeaway';
@@ -107,6 +112,10 @@ const topProducts: ProductData[] = [
 const Dashboard = () => {
   const [timePeriod, setTimePeriod] = useState<TimePeriod>('week');
   const [activeTab, setActiveTab] = useState('overview');
+  const [dateRange, setDateRange] = useState<DateRange | undefined>({
+    from: new Date(),
+    to: addDays(new Date(), 7),
+  });
 
   // Calculations
   const totalSales = outlets.reduce((sum, outlet) => sum + outlet.sales, 0);
@@ -124,18 +133,63 @@ const Dashboard = () => {
       <h1 className="text-3xl font-bold text-gray-800 mb-2">POS Revenue Dashboard</h1>
       <p className="text-gray-600 mb-6">Comprehensive sales analytics across all outlets</p>
 
-      {/* Time Period Selector */}
-      <div className="flex justify-center gap-2 mb-6">
-        {['day', 'week', 'month', 'year'].map((period) => (
-          <Button
-            key={period}
-            variant={timePeriod === period ? 'default' : 'outline'}
-            onClick={() => setTimePeriod(period as TimePeriod)}
-            className="capitalize"
-          >
-            {period}
-          </Button>
-        ))}
+      {/* Time Period Selector and Date Range Picker */}
+      <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
+        <div className="flex gap-2">
+          {['day', 'week', 'month', 'year'].map((period) => (
+            <Button
+              key={period}
+              variant={timePeriod === period ? 'default' : 'outline'}
+              onClick={() => setTimePeriod(period as TimePeriod)}
+              className="capitalize"
+            >
+              {period}
+            </Button>
+          ))}
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className="w-[280px] justify-start text-left font-normal"
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {dateRange?.from ? (
+                  dateRange.to ? (
+                    <>
+                      {format(dateRange.from, 'MMM dd, yyyy')} -{' '}
+                      {format(dateRange.to, 'MMM dd, yyyy')}
+                    </>
+                  ) : (
+                    format(dateRange.from, 'MMM dd, yyyy')
+                  )
+                ) : (
+                  <span>Pick a date range</span>
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0">
+              <Calendar
+                mode="range"
+                selected={dateRange}
+                onSelect={setDateRange}
+                numberOfMonths={2}
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
+          {dateRange && (
+            <Button
+              variant="ghost"
+              onClick={() => setDateRange(undefined)}
+              className="text-sm text-muted-foreground"
+            >
+              Clear
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Dashboard Tabs */}
@@ -150,58 +204,58 @@ const Dashboard = () => {
       {/* Executive Overview */}
       {activeTab === 'overview' && (
         <div className="space-y-6">
-          {/* Top Metrics */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Sales</CardTitle>
-                <DollarSign className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">QAR {totalSales.toLocaleString()}</div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  +12.5% from last {timePeriod}
-                </p>
-              </CardContent>
+          {/* Key Metrics */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <Card className="p-6 animate-fade-in bg-gradient-to-r from-blue-600 to-blue-800" style={{ animationDelay: '0.1s' }}>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-white/80 mb-1">Total Sales</p>
+                  <p className="text-3xl font-bold text-white">₹{totalSales.toLocaleString()}</p>
+                  <p className="text-xs text-white/70 mt-1">+12.5% from last month</p>
+                </div>
+                <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
+                  <DollarSign className="h-7 w-7 text-white" />
+                </div>
+              </div>
             </Card>
 
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Transactions</CardTitle>
-                <ShoppingBag className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{totalTransactions}</div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  +8.3% from last {timePeriod}
-                </p>
-              </CardContent>
+            <Card className="p-6 bg-gradient-to-br from-blue-50 to-indigo-50 animate-fade-in" style={{ animationDelay: '0.2s' }}>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-blue-700 mb-1">Total Transactions</p>
+                  <p className="text-3xl font-bold text-blue-900">{totalTransactions.toLocaleString()}</p>
+                  <p className="text-xs text-blue-600 mt-1">+8.2% from last month</p>
+                </div>
+                <div className="p-3 bg-blue-100 rounded-xl">
+                  <CreditCard className="h-7 w-7 text-blue-600" />
+                </div>
+              </div>
             </Card>
 
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Avg Order Value</CardTitle>
-                <TrendingUp className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">QAR {aov.toFixed(2)}</div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  +5.2% from last {timePeriod}
-                </p>
-              </CardContent>
+            <Card className="p-6 bg-gradient-to-br from-purple-50 to-pink-50 animate-fade-in" style={{ animationDelay: '0.3s' }}>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-purple-700 mb-1">Avg Order Value</p>
+                  <p className="text-3xl font-bold text-purple-900">₹{aov.toFixed(0)}</p>
+                  <p className="text-xs text-purple-600 mt-1">+5.1% from last month</p>
+                </div>
+                <div className="p-3 bg-purple-100 rounded-xl">
+                  <ShoppingBag className="h-7 w-7 text-purple-600" />
+                </div>
+              </div>
             </Card>
 
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Top Outlet</CardTitle>
-                <Home className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-xl font-bold">{topOutlet.name}</div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  QAR {topOutlet.sales.toLocaleString()}
-                </p>
-              </CardContent>
+            <Card className="p-6 bg-gradient-to-br from-orange-50 to-red-50 animate-fade-in" style={{ animationDelay: '0.4s' }}>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-orange-700 mb-1">Top Outlet</p>
+                  <p className="text-xl font-bold text-orange-900 leading-tight">{topOutlet.name}</p>
+                  <p className="text-sm text-orange-600 font-semibold">₹{topOutlet.sales.toLocaleString()}</p>
+                </div>
+                <div className="p-3 bg-orange-100 rounded-xl">
+                  <TrendingUp className="h-7 w-7 text-orange-600" />
+                </div>
+              </div>
             </Card>
           </div>
 
@@ -218,7 +272,7 @@ const Dashboard = () => {
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="hour" />
                     <YAxis />
-                    <Tooltip formatter={(value: number) => [`QAR ${value.toLocaleString()}`, 'Sales']} />
+                    <Tooltip formatter={(value: number) => [`₹${value.toLocaleString()}`, 'Sales']} />
                     <Legend />
                     <Line type="monotone" dataKey="sales" stroke="#8884d8" activeDot={{ r: 8 }} />
                   </LineChart>
@@ -248,7 +302,7 @@ const Dashboard = () => {
                         <Cell key={`cell-${idx}`} fill={entry.color} />
                       ))}
                     </Pie>
-                    <Tooltip formatter={(value: number) => [`QAR ${value.toLocaleString()}`, 'Sales']} />
+                    <Tooltip formatter={(value: number) => [`₹${value.toLocaleString()}`, 'Sales']} />
                     <Legend />
                   </PieChart>
                 </ResponsiveContainer>
@@ -269,7 +323,7 @@ const Dashboard = () => {
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="method" />
                     <YAxis />
-                    <Tooltip formatter={(value: number) => [`QAR ${value.toLocaleString()}`, 'Amount']} />
+                    <Tooltip formatter={(value: number) => [`₹${value.toLocaleString()}`, 'Amount']} />
                     <Legend />
                     <Bar dataKey="amount" name="Amount">
                       {paymentMethods.map((entry, idx) => (
@@ -295,7 +349,7 @@ const Dashboard = () => {
                         <p className="text-sm text-muted-foreground">{product.category}</p>
                       </div>
                       <div className="text-right">
-                        <p className="font-medium">QAR {product.sales.toLocaleString()}</p>
+                        <p className="font-medium">₹{product.sales.toLocaleString()}</p>
                         <p className="text-sm text-muted-foreground">{product.margin}% margin</p>
                       </div>
                     </div>
@@ -324,7 +378,7 @@ const Dashboard = () => {
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis type="number" />
                   <YAxis dataKey="name" type="category" width={100} />
-                  <Tooltip formatter={(value: number) => [`QAR ${value.toLocaleString()}`, 'Sales']} />
+                  <Tooltip formatter={(value: number) => [`₹${value.toLocaleString()}`, 'Sales']} />
                   <Legend />
                   <Bar dataKey="sales" name="Sales" fill="#8884d8" />
                 </BarChart>
@@ -342,7 +396,7 @@ const Dashboard = () => {
                   <div className="space-y-2">
                     <div className="flex justify-between">
                       <span>Sales:</span>
-                      <span className="font-medium">QAR {outlet.sales.toLocaleString()}</span>
+                      <span className="font-medium">₹{outlet.sales.toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Transactions:</span>
@@ -350,11 +404,11 @@ const Dashboard = () => {
                     </div>
                     <div className="flex justify-between">
                       <span>Sales/SqFt:</span>
-                      <span className="font-medium">QAR {(outlet.sales / outlet.sqFt).toFixed(2)}</span>
+                      <span className="font-medium">₹{(outlet.sales / outlet.sqFt).toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Sales/Employee:</span>
-                      <span className="font-medium">QAR {(outlet.sales / outlet.employees).toLocaleString()}</span>
+                      <span className="font-medium">₹{(outlet.sales / outlet.employees).toLocaleString()}</span>
                     </div>
                   </div>
                 </CardContent>
@@ -377,7 +431,7 @@ const Dashboard = () => {
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="name" />
                   <YAxis />
-                  <Tooltip formatter={(value: number) => [`QAR ${value.toLocaleString()}`, 'Sales']} />
+                  <Tooltip formatter={(value: number) => [`₹${value.toLocaleString()}`, 'Sales']} />
                   <Legend />
                   <Bar dataKey="sales" name="Sales" fill="#8884d8" />
                   <Bar dataKey="margin" name="Margin %" fill="#82ca9d" />
@@ -408,7 +462,7 @@ const Dashboard = () => {
                         <Cell key={`cell-${idx}`} fill={entry.color} />
                       ))}
                     </Pie>
-                    <Tooltip formatter={(value: number) => [`QAR ${value.toLocaleString()}`, 'Sales']} />
+                    <Tooltip formatter={(value: number) => [`₹${value.toLocaleString()}`, 'Sales']} />
                     <Legend />
                   </PieChart>
                 </ResponsiveContainer>
@@ -427,7 +481,7 @@ const Dashboard = () => {
                         <p className="font-medium">{category.name}</p>
                       </div>
                       <div className="text-right">
-                        <p className="font-medium">QAR {category.sales.toLocaleString()}</p>
+                        <p className="font-medium">₹{category.sales.toLocaleString()}</p>
                         <p className="text-sm text-muted-foreground">{category.margin}% margin</p>
                       </div>
                     </div>
